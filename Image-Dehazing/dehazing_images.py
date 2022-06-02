@@ -64,9 +64,7 @@ def dehazing(img, delta=0.9, sigma=1):
     t = gaussian_filter(t, sigma)
     t[t < 0.05] = 0.05
     t = np.repeat(t[:, :, None], 3, axis=2)
-    J = (img - A) / t
-    J = J + A
-    J = J + 10
+    J = ((img - A) / t) + A + 15
     J[J > 255] = 255
     J[J < 0] = 0
     J = J.astype(np.uint8, copy=False)
@@ -107,6 +105,3 @@ def main():
             print(s)
             writer.writerow([f"{i:02d}", p, s])
             cv2.imwrite(f"Image-Dehazing/Dehazed/{i:02d}_outdoor_dh.png", imgdh)
-
-
-main()
