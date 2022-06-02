@@ -130,6 +130,7 @@ dmypy.json
 
 .vscode
 VizDoom/
+VizDoom
 Image-Dehazing/Dehazed
 Image-Dehazing/GT
 Image-Dehazing/Hazy
