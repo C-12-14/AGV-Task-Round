@@ -51,9 +51,9 @@ def ssim(im1, im2):
 def dehazing(img, delta=0.9, sigma=1):
     minIc = img.min(axis=2).astype(np.float64, copy=False)
     gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-    gray = gray.astype(np.float64, copy=False)
+    # gray = gray.astype(np.float64, copy=False)
     gray = gray.ravel()
-    t10 = int(len(gray) * 0.01)
+    t10 = int(len(gray) * 0.001)
     A = gray[np.argpartition(gray, -t10)[-t10:]].mean()
     MAX = minIc.max()
     MIN = minIc.min()
@@ -64,7 +64,7 @@ def dehazing(img, delta=0.9, sigma=1):
     t = gaussian_filter(t, sigma)
     t[t < 0.05] = 0.05
     t = np.repeat(t[:, :, None], 3, axis=2)
-    J = ((img - A) / t) + A + 15
+    J = ((img - A) / t) + A * 1.275
     J[J > 255] = 255
     J[J < 0] = 0
     J = J.astype(np.uint8, copy=False)
@@ -74,15 +74,17 @@ def dehazing(img, delta=0.9, sigma=1):
 # im = cv2.imread("Image-Dehazing/test5.png")
 # imd = dehazing(im, 0.95, sigma=1)
 # cv2.imwrite("Dehazed01.png", im)
-# cv2.imshow("im dehazed", imd)
+# im = cv2.imread("Image-Dehazing/Hazy/02_outdoor_hazy.jpg", 33)
 # cv2.imshow("im", im)
-# im = cv2.imread("Image-Dehazing/Hazy/08_outdoor_hazy.jpg", 33)
-# imd = dehazing(im, 0.95, sigma=1)
-# # cv2.imwrite("Dehazed01.png", im)
-# cv2.imshow("im2 dehazed", imd)
-# cv2.imshow("im2", im)
-# imd = dehazing(im, 0.8, sigma=1)
-# cv2.imshow("im2 dehazed2", imd)
+# cv2.imshow("im", im)
+# imd = dehazing(im, 0.1, sigma=200)
+# cv2.imshow("im1 dehazed", imd)
+# # cv2.imwrite("Image-Dehazing/Dehazedstadium.png", imd)
+# # imd = dehazing(imd, 0.4, sigma=2)
+# # cv2.imshow("im2 dehazed", imd)
+# # cv2.imshow("im2", im)
+# # imd = dehazing(im, 0.8, sigma=1)
+# # cv2.imshow("im2 dehazed2", imd)
 # while True:
 #     if cv2.waitKey(1) & 0xFF == ord("q"):
 #         break
@@ -99,9 +101,14 @@ def main():
     with open("Image-Dehazing/output.csv", "w") as f:
         writer = csv.writer(f, delimiter=",")
         for img1, img2, i in zip(hazyimages, gtimages, range(1, len(hazyimages) + 1)):
-            imgdh = dehazing(img1, 1, 7)
+            imgdh = dehazing(img1, 0.1, 200)
             p = psnr(imgdh, img2)
             s = ssim(imgdh, img2)
-            print(s)
+            s1 = ssim(img1, img2)
+            print(f"{i:02} dehazed vs gt: {s}\t hazy vs gt: {s1}\t{s-s1}")
+
             writer.writerow([f"{i:02d}", p, s])
             cv2.imwrite(f"Image-Dehazing/Dehazed/{i:02d}_outdoor_dh.png", imgdh)
+
+
+main()
