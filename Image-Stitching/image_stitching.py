@@ -100,7 +100,7 @@ def plotting(img1, img2, k1, k2, inliers, outliers, stitched_image, name):
     ax[1].imshow(stitched_image)
     ax[1].set_title("Stitched Image")
     fig.tight_layout()
-    fig.savefig(f"Image-Stitching/output/{name}/{name}_plot.png", dpi=300)
+    fig.savefig(f"Image-Stitching/output/{name}_plot.png", dpi=300)
     plt.show()
 
 
@@ -112,7 +112,7 @@ def main():
     k1, k2, good = sift(img1, img2)
     homography, inliers, outliers = ransac(k1, k2, good, 100)
     stitched_image = image_stitching(img1, img2, homography)
-    cv2.imwrite(f"Image-Stitching/output/{name}/{name}.jpg", stitched_image)
+    cv2.imwrite(f"Image-Stitching/output/{name}.jpg", stitched_image)
     plotting(img1, img2, k1, k2, inliers, outliers, stitched_image, name=name)
 
 
