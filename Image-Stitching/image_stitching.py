@@ -14,7 +14,7 @@ def sift(img1, img2):
 
     good = []
     for m, n in matches:
-        if m.distance < 0.5 * n.distance:
+        if m.distance <= 0.9 * n.distance:
             good.append([m])
     good = np.array(good)
     return k1, k2, good
@@ -100,7 +100,7 @@ def plotting(img1, img2, k1, k2, inliers, outliers, stitched_image, name):
     ax[1].imshow(stitched_image)
     ax[1].set_title("Stitched Image")
     fig.tight_layout()
-    fig.savefig(f"Image-Stitching/output/{name}_plot.png", dpi=300)
+    # fig.savefig(f"Image-Stitching/output/{name}_plot.png", dpi=300)
     plt.show()
 
 
@@ -110,9 +110,9 @@ def main():
     img2 = cv2.imread(f"Image-Stitching/images/{name}A.jpg")
 
     k1, k2, good = sift(img1, img2)
-    homography, inliers, outliers = ransac(k1, k2, good, 100)
+    homography, inliers, outliers = ransac(k1, k2, good, 1000)
     stitched_image = image_stitching(img1, img2, homography)
-    cv2.imwrite(f"Image-Stitching/output/{name}.jpg", stitched_image)
+    # cv2.imwrite(f"Image-Stitching/output/{name}.jpg", stitched_image)
     plotting(img1, img2, k1, k2, inliers, outliers, stitched_image, name=name)
 
 
