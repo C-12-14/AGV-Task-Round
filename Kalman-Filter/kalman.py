@@ -1,7 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import csv
+import os
 
+dirname = os.path.dirname(__file__)
 t = 1
 
 sig_x_est, sig_y_est, sig_vx_est, sig_vy_est = np.array([0.25, 0.25, 0.1, 0.1]) * 20
@@ -20,7 +22,7 @@ def main():
     data = []
     xi = 0
     yi = 0
-    with open("kalman-filter/kalmann.txt") as f:
+    with open(os.path.join(dirname, "kalmann.txt")) as f:
         lines = f.readlines()
         xi, yi = [float(x) for x in lines[0].split(",")]
         data = [[float(x) for x in line.split(",")] for line in lines[1:]]
@@ -57,7 +59,7 @@ def main():
     y_kal = [yi]
     x_mea = [xi]
     y_mea = [yi]
-    with open("kalman-filter/kalmann_est.txt", "w") as wf:
+    with open(os.path.join(dirname, "kalmann_est.txt"), "w") as wf:
         for x, y, vx, vy in data:
             X = predict(A, X[0][0], X[1][0], X[2][0], X[3][0])
             P = np.diag(np.diag(A @ P @ A.T))
@@ -78,9 +80,13 @@ def main():
             wf.write(
                 f"{X[0][0]} , {X[1][0]} , {X[2][0]} , {X[3][0]} , {P[0][0]} , {P[1][1]} , {P[2][2]} , {P[3][3]}\n"
             )
-
-        plt.plot(x_kal, y_kal)
-        plt.plot(x_mea, y_mea, alpha=0.5)
+        w, h = np.max(x_kal), np.max(y_kal)
+        h = h / w
+        plt.figure(figsize=(15, h * 15))
+        plt.plot(x_mea, y_mea, alpha=0.5, label="Observation", color="tab:red")
+        plt.plot(x_kal, y_kal, label="After applying kalman filter", color="tab:blue")
+        plt.legend()
+        plt.savefig(os.path.join(dirname, "output.png"), dpi=300)
         plt.show()
 
 

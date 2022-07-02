@@ -1,10 +1,19 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
+import os
+
+dirname = os.path.dirname(__file__)
 
 
 class line:
     def __init__(self, m, c, inliers, outliers):
+        """
+        :param float m: slope of the line
+        :param float c: y intercept of the line
+        :param np.ndarrays inliers: array of all the inlier blobs
+        :param np.ndarrays outliers: array of all the outlier blobs
+        """
         self.m = m
         self.c = c
         self.inliers = inliers
@@ -12,6 +21,12 @@ class line:
 
 
 def point_detection(img):
+    """Blob detection in the image
+    :param np.ndarray img
+
+    :return: coordinates
+    :rtype: np.ndarray
+    """
     params = cv2.SimpleBlobDetector_Params()
 
     params.minThreshold = 20
@@ -28,6 +43,10 @@ def point_detection(img):
 
 
 def plot(linefit, img):
+    """Plotting all the points with the line and its inliers and outliers
+
+    :param line
+    """
     w, h = img.shape
     fig, ax = plt.subplots(figsize=(h / 100, w / 100))
     f = lambda x: linefit.m * x + linefit.c
@@ -63,11 +82,18 @@ def plot(linefit, img):
     ax.set_title("2D Line Fitting Task", fontsize=18)
     plt.gca().invert_yaxis()
     fig.tight_layout()
-    # plt.savefig("Image-Stitching/output_after_100_iterations.png", dpi=300)
+    # plt.savefig(os.path.join(dirname, "output_after_100_iterations.png"), dpi=300)
     plt.show()
 
 
 def ransac_line(coordinates, n=20, r=8):
+    """
+    :param int n: number of iterations
+    :param float r: maximum distance around the line where inliers can be present
+
+    :return: bestfit
+    :rtype: line
+    """
     results = np.array([])
     maxin = 0
     bestfit = 0
@@ -92,12 +118,9 @@ def ransac_line(coordinates, n=20, r=8):
     return bestfit
 
 
-def main():
+if __name__ == "__main__":
     dots = []
-    img = cv2.imread("./Image-Stitching/line_ransac.png", cv2.IMREAD_GRAYSCALE)
+    img = cv2.imread(os.path.join(dirname, "line_ransac.png"), cv2.IMREAD_GRAYSCALE)
     coor = point_detection(img)
     best = ransac_line(coor, 100, 20)
     plot(best, img)
-
-
-main()

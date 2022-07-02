@@ -3,6 +3,9 @@ import cv2
 import matplotlib.pyplot as plt
 from pprint import pprint
 import scipy.ndimage
+import os
+
+dirname = os.path.dirname(__file__)
 
 
 class ImageStitching:
@@ -150,18 +153,18 @@ class ImageStitching:
         ax[1].imshow(stitched_image)
         ax[1].set_title("Stitched Image")
         fig.tight_layout()
-        # fig.savefig(f"Image-Stitching/output/{name}_plot.png", dpi=300)
+        # fig.savefig(os.path.join(dirname, f"output/{name}_plot.png"), dpi=300)
         plt.show()
 
 
 if __name__ == "__main__":
     stitcher = ImageStitching()
     name = "foto1"
-    img1 = cv2.imread(f"Image-Stitching/images/{name}B.jpg")
-    img2 = cv2.imread(f"Image-Stitching/images/{name}A.jpg")
+    img1 = cv2.imread(os.path.join(dirname, f"images/{name}B.jpg"))
+    img2 = cv2.imread(os.path.join(dirname, f"images/{name}A.jpg"))
 
     k1, k2, good = stitcher.sift(img1, img2, thres=0.3)
-    homography, inliers, outliers = stitcher.ransac(k1, k2, good, 10)
+    homography, inliers, outliers = stitcher.ransac(k1, k2, good, 100)
     stitched_image = stitcher.image_stitching(img1, img2, homography)
-    # cv2.imwrite(f"Image-Stitching/output/{name}.jpg", stitched_image)
+    # cv2.imwrite(os.path.join(f"output/{name}.jpg", stitched_image))
     stitcher.plotting(img1, img2, k1, k2, inliers, outliers, stitched_image, name=name)
