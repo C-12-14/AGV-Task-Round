@@ -11,9 +11,9 @@
 
 ## Image-Dehazing
 
-<img src="Image-Dehazing/Hazy/01_outdoor_hazy.jpg" >
-<img src="Image-Dehazing/Dehazed/01_outdoor_dh.png">
+<img src="Image-Dehazing/Hazy/hazy1.webp" >
+<img src="Image-Dehazing/Dehazed/dehazed1.webp">
 
 ## Kalman-Filter
 
-<img src="Kalman-Filter/output.png">
+<img src="Kalman-Filter/output.webp">
