@@ -5,8 +5,23 @@ from scipy.ndimage import gaussian_filter
 
 
 class Dehazing:
-    def __init__(self):
-        pass
+    def __init__(
+        self,
+        delta: float = 0.9,
+        sigma: float = 1,
+        brightness_gain: float = 1.275,
+        kernel: tuple = (301, 301),
+    ):
+        """
+        :param float delta: Control factor
+        :param float sigma: Variance for the gaussian distribution
+        :param float brightness_gain: Gain in brighness after recovering the dehazed image
+        :param tuple kernel: Size of kernel to be used when applying the gaussian filter
+        """
+        self.delta = delta
+        self.sigma = sigma
+        self.bgain = brightness_gain
+        self.kernel = kernel
 
     def psnr(self, img1: np.ndarray, img2: np.ndarray):
         """Peak Signal to Noise Ratio
@@ -17,7 +32,6 @@ class Dehazing:
         :return: pnsr value
         :rtype: float
         """
-
         mse = ((img1 - img2) ** 2).mean()
         return 20 * np.log10(255) - 10 * np.log10(mse)
 
@@ -30,7 +44,6 @@ class Dehazing:
         :return: structural similarity
         :rtype: float
         """
-
         k1 = 0.01
         k2 = 0.03
         channels = im1.shape[2]
@@ -69,46 +82,79 @@ class Dehazing:
 
         return mssim.mean()
 
-    def dehazing(
+    def atmospheric_light(self, img: np.ndarray, x: float = 0.05):
+        """To find atmospheric lighting in the image.
+
+        :param np.ndarray img: hazy image
+        :param float x: for finding top x% brightest pixels
+
+        :return: A
+        :rtype: float
+        """
+        gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)  # Grayscale transformation
+        gray = gray.ravel()
+        top = int(len(gray) * x / 100)  # Selecting top x% bright pixels
+
+        """Gray Value Calculation"""
+        A = gray[
+            np.argpartition(gray, -top)[-top:]
+        ].mean()  # Mean of top x% bright pixels
+        return A
+
+    def transmission_map(self, A: float, minIc: np.ndarray):
+        """To find the transmission map of the image
+
+        :param float A: Atmospheric Light
+        :param np.ndarray minIc: minimum color channel
+
+        :return: t
+        :rtype: np.ndarray
+        """
+        MAX = minIc.max()
+        MIN = minIc.min()
+        J = self.delta * (minIc - MIN) * minIc / (MAX - MIN)
+        t = abs((A - minIc) / (A - J))
+        maxt = t.max()
+        t[minIc > A] = t[minIc > A] / maxt
+        t = cv2.GaussianBlur(t, self.kernel, self.sigma, sigmaY=self.sigma)
+        t[t < 0.05] = 0.05
+        t = np.repeat(t[:, :, None], 3, axis=2)
+        return t
+
+    def recover_image(self, img: np.ndarray, A: float, t: np.ndarray):
+        """To recover the final image given the Atmospheric lighting and the transmission map
+
+        :param np.ndarray img: Original hazy image
+        :param float A: Atmospheric Light
+        :param np.ndarray t: Transmission map
+
+        :return: J
+        :rtype: np.ndarray
+        """
+        J = ((img - A) / t) + A * self.bgain
+        J[J > 255] = 255
+        J[J < 0] = 0
+        J = J.astype(np.uint8, copy=False)
+        return J
+
+    def dehaze(
         self,
         img: np.ndarray,
-        delta: float = 0.9,
-        sigma: float = 1,
-        bgain: float = 1.275,
     ):
         """Implementation of dehazing algorithm given in 'Fast Image Dehazing Method Based on Linear Transformation'.
            DOI:http://dx.doi.org/10.1109/TMM.2017.2652069
 
         :param ndarray img: ndarray of input image
-        :param float delta: control factor
-        :param float sigma: standard deviation of the normal distribution
-        :param float bgain: brightness gain
 
         :return: Dehazed image (J)
         :rtype: np.ndarray
         """
 
-        minIc = img.min(axis=2).astype(np.float64, copy=False)
-        gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-        gray = gray.ravel()
-        top = int(len(gray) * 0.001)  # Selecting top x% bright pixels
-        A = gray[
-            np.argpartition(gray, -top)[-top:]
-        ].mean()  # Mean of top x% bright pixels
-        MAX = minIc.max()
-        MIN = minIc.min()
-
-        J = delta * (minIc - MIN) * minIc / (MAX - MIN)
-        t = abs((A - minIc) / (A - J))
-        maxt = t.max()
-        t[minIc > A] = t[minIc > A] / maxt
-        t = gaussian_filter(t, sigma)
-        t[t < 0.05] = 0.05
-        t = np.repeat(t[:, :, None], 3, axis=2)
-        J = ((img - A) / t) + A * bgain
-
-        J[J > 255] = 255
-        J[J < 0] = 0
-        J = J.astype(np.uint8, copy=False)
-
+        minIc = img.min(axis=2).astype(np.float64, copy=False)  # Minimum filtering
+        A = self.atmospheric_light(img, x=0.05)
+        t = self.transmission_map(A, minIc)
+        J = self.recover_image(img, A, t)
         return J
+
+
+# if __name__ == "__main__":

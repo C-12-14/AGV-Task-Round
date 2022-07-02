@@ -129,8 +129,3 @@ dmypy.json
 .pyre/
 
 .vscode
-VizDoom/
-VizDoom
-Image-Dehazing/Dehazed
-Image-Dehazing/GT
-Image-Dehazing/Hazy
