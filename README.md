@@ -5,14 +5,14 @@
 
 ## Image Stitching
 
-<img src="Image-Stitching/output/foto4_plot.png">
+<img src="Image-Stitching/output/foto4_plot.webp">
 
 ## Lane-Detection
 
 ## Image-Dehazing
 
-<img src="Image-Dehazing/Hazy/01_outdoor_hazy.jpg" width=48%>
-<img src="Image-Dehazing/Dehazed/01_outdoor_dh.png" width=48%>
+<img src="Image-Dehazing/Hazy/01_outdoor_hazy.jpg" >
+<img src="Image-Dehazing/Dehazed/01_outdoor_dh.png">
 
 ## Kalman-Filter
 
